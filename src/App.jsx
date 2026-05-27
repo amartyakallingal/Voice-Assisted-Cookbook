@@ -26,6 +26,7 @@ function App() {
 
   // Replaced arrow async function with standard async function
   async function handleParse() {
+    console.log("Sending recipe text to AI:", recipeText);
     if (!recipeText.trim()) {return}; // Edge case: Prematurely return if recipeText (text box) is "" (empty)
     setIsLoading(true); // Turn on the loading state while we call the API
     
@@ -50,6 +51,28 @@ function App() {
       setIsLoading(false); // Turn off loading state regardless of success/fail
     }
   };
+
+  async function processVoiceCommand(transcript) {
+    console.log("Sending voice command transcript to AI:", transcript);
+
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: transcript,
+        config: {
+          systemInstruction: "You are strictly a recipe navigation routing agent. Classify the user's command into exactly one of these intents: 'NEXT', 'PREVIOUS', 'REPEAT', 'INGREDIENTS', or 'UNKNOWN'. Return exactly a JSON object with a single key 'intent' (a string).",
+          responseMimeType: "application/json",
+        }
+      });
+
+      const data = JSON.parse(response.text); // Parse string into a JSON object
+      console.log("AI classified voice command intent as:", data.intent);
+
+      textToSpeech(`I classified your intent as ${data.intent}`);
+    } catch (error) {
+      console.error("Failed to send voice command transcript:", error);
+    }
+  }
 
   function textToSpeech(textToSpeak) {
     // First check that the browser supports speech synthesis
@@ -80,6 +103,7 @@ function App() {
       const transcript = event.results[0][0].transcript;
       setHeardCommand(transcript); // Display what was heard to the UI
       console.log("Microphone heard:", transcript);
+      processVoiceCommand(transcript); // Send transcript to AI for processing
     }
 
     // If there was an error capturing speech...
@@ -156,13 +180,11 @@ function App() {
       {/* Testing the microphone and speaker */}
       <div>
         <h2>3. Voice Control Test</h2>
-        
-        {/* Test the Microphone */}
+
         <button onClick={speechToText} style={{ marginRight: '10px', padding: '8px' }}>
           🎙️ Click to Speak
         </button>
-        
-        {/* Test the Speaker */}
+
         <button 
           onClick={function() { textToSpeech("Testing text to speech.") }}
           style={{ padding: '8px' }}
