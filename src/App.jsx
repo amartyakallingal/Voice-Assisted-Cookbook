@@ -153,12 +153,23 @@ function App() {
 
       <hr style={{ margin: '20px 0' }} />
 
-      {/* Testing the microphone */}
+      {/* Testing the microphone and speaker */}
       <div>
         <h2>3. Voice Control Test</h2>
-        <button onClick={speechToText}>
+        
+        {/* Test the Microphone */}
+        <button onClick={speechToText} style={{ marginRight: '10px', padding: '8px' }}>
           🎙️ Click to Speak
         </button>
+        
+        {/* Test the Speaker */}
+        <button 
+          onClick={function() { textToSpeech("Testing text to speech.") }}
+          style={{ padding: '8px' }}
+        >
+          🔊 Test Speaker
+        </button>
+
         <p><strong>You said:</strong> {heardCommand || "(Nothing yet)"}</p>
       </div>
     </div>
